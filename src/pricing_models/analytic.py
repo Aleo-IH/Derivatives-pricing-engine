@@ -2,7 +2,7 @@ import QuantLib as ql
 from ..utils.ql import preprocess_quotes
 
 
-def BSM_EuroVanilla(u_params: dict = None, o_params: dict = None):
+def BSM_EuroVanilla(u_params: dict = None):
     q_params = preprocess_quotes(params=u_params)
 
     calendar = ql.TARGET()
@@ -22,9 +22,9 @@ def BSM_EuroVanilla(u_params: dict = None, o_params: dict = None):
     )
 
     option = ql.EuropeanOption(
-        ql.PlainVanillaPayoff(ql.Option.Call, o_params["k"]),
-        ql.EuropeanExercise(o_params["exercise_date"]),
+        ql.PlainVanillaPayoff(q_params["option_type"], q_params["k"]),
+        ql.EuropeanExercise(q_params["exercise_date"]),
     )
 
     option.setPricingEngine(ql.AnalyticEuropeanEngine(process))
-    return option
+    return q_params, option

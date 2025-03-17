@@ -2,6 +2,7 @@ import yfinance as yf
 import pandas as pd
 import numpy as np
 from typing import Union, List
+from dateutil.relativedelta import relativedelta
 
 
 def to_continuous(rate: float) -> float:
@@ -98,8 +99,9 @@ def get_dividend_yield(stock: yf.Ticker) -> float:
     try:
         info = stock.info
         # Divide by 100 to convert percentage to fraction
-        dividend_yield = info.get("dividendYield") / 100
+        dividend_yield = info.get("dividendYield")
         if dividend_yield is not None:
+            dividend_yield = dividend_yield / 100
             dividend_yield = to_continuous(dividend_yield)
     except Exception as e:
         print(f"Warning: Error retrieving dividend yield: {str(e)}")
@@ -112,7 +114,7 @@ def get_expiration_dates(
     expiry_date: str = None,
     expiry_start_date: pd.Timestamp = None,
     expiry_end_date: pd.Timestamp = None,
-) -> List[str]:
+) -> List[pd.Timestamp]:
     """
     Retrieves and filters expiration dates for a given ticker.
 
@@ -126,16 +128,16 @@ def get_expiration_dates(
         List[str]: List of expiration dates.
     """
     if expiry_date:
-        return [expiry_date]
+        return [pd.Timestamp(expiry_date)]
 
     expirations = stock.options
     if expiry_start_date or expiry_end_date:
         expirations = [
-            exp
+            pd.Timestamp(exp)
             for exp in expirations
             if (
-                (not expiry_start_date or pd.to_datetime(exp) >= expiry_start_date)
-                and (not expiry_end_date or pd.to_datetime(exp) <= expiry_end_date)
+                (not expiry_start_date or pd.Timestamp(exp) >= expiry_start_date)
+                and (not expiry_end_date or pd.Timestamp(exp) <= expiry_end_date)
             )
         ]
     return expirations
@@ -144,7 +146,7 @@ def get_expiration_dates(
 def process_option_data(
     opt_data: pd.DataFrame,
     symbol: str,
-    exp_date: str,
+    exp_date: pd.Timestamp,
     current_date: pd.Timestamp,
     option_type: str,
     min_strike: float = None,
@@ -174,7 +176,8 @@ def process_option_data(
     opt_data["Option Type"] = option_type
     opt_data["Ticker"] = symbol
     opt_data["expiration"] = exp_date
-    opt_data["date"] = current_date.strftime('%Y-%m-%d')
+    opt_data["date"] = current_date
+    opt_data["time_to_maturity"] = (exp_date - current_date).days / 365.25
     opt_data["underlying_price"] = underlying_price
     opt_data["dividend_yield"] = dividend_yield
     opt_data["risk_free_rate"] = risk_free_rate
@@ -242,8 +245,7 @@ def options_gathering(
 
         for exp_date in expirations:
             try:
-                opt_chain = stock.option_chain(exp_date)
-
+                opt_chain = stock.option_chain(exp_date.strftime("%Y-%m-%d"))
                 if option_type in ["call", "both"]:
                     calls = process_option_data(
                         opt_chain.calls,
