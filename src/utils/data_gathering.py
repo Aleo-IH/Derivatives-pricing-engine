@@ -2,8 +2,6 @@ import yfinance as yf
 import pandas as pd
 import numpy as np
 from typing import Union, List
-from dateutil.relativedelta import relativedelta
-
 
 def to_continuous(rate: float) -> float:
     """
