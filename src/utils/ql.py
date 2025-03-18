@@ -1,12 +1,13 @@
 import QuantLib as ql
 from pandas import Timestamp
+from .data_gathering import column_helper
 
 
 def preprocess_quotes(params: dict = {}):
     result = {}
     for key, val in params.items():
         
-        if isinstance(val, (float, int)) and key != 'k':
+        if isinstance(val,(float,int)) and key in column_helper().values() and key !='k':
             result[key] = ql.SimpleQuote(val)
 
         elif isinstance(val, Timestamp):

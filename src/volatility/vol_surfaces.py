@@ -20,6 +20,7 @@ def build_black_variance_surface(df : pd.DataFrame, expiration_col : str ='exerc
     
     Returns:
         ql.BlackVarianceSurface: The constructed volatility surface.
+        ql.Date : The earliest date for the contruction of the black vol
     """
     # Create a pivot table with strikes as rows, expiration dates as columns,
     # and volatilities as values, aggregating by the mean of squared values
@@ -47,10 +48,10 @@ def build_black_variance_surface(df : pd.DataFrame, expiration_col : str ='exerc
         ql.Settings.instance().evaluationDate, ql.TARGET(), ql_dates, strikes, vol_matrix, ql.Actual365Fixed()
     )
     vol_surface.setInterpolation(interpolation_method)
-    return vol_surface
+    return vol_surface, ql_dates[0]
 
 
-def plot_vol_surface(vol_surface, strike_min  : float = 0, strike_max : float = float('inf'), num_strikes : int =100, num_ttm : int =100):
+def plot_vol_surface(vol_surface, min_date : ql.Date = ql.Settings.instance().evaluationDate + 1, strike_min  : float = 0, strike_max : float = float('inf'), num_strikes : int =100, num_ttm : int =100):
     """
     Generates a 3D surface plot of a QuantLib BlackVarianceSurface using Plotly.
     
@@ -62,7 +63,12 @@ def plot_vol_surface(vol_surface, strike_min  : float = 0, strike_max : float = 
         num_ttm (int): Number of time-to-maturity points.
     
     Returns:
-        plotly.graph_objects.Figure: The 3D surface plot.
+        tuple: A tuple containing:
+            - vol_grid (numpy.ndarray): Grid of volatility values.
+            - strike_mesh (numpy.ndarray): Mesh grid of strike prices.
+            - ttm_mesh (numpy.ndarray): Mesh grid of time-to-maturity values.
+        
+        The function also displays an interactive 3D surface plot.
     """
 
     # Use the maximum of the input min_strike and the surface's min_strike
@@ -74,7 +80,8 @@ def plot_vol_surface(vol_surface, strike_min  : float = 0, strike_max : float = 
     today = ql.Settings.instance().evaluationDate
 
     max_ttm = ql.Actual365Fixed().yearFraction(today, vol_surface.maxDate())
-    ttm_range = np.linspace(0.01, max_ttm, num_ttm)
+    min_ttm = ql.Actual365Fixed().yearFraction(today, min_date)
+    ttm_range = np.linspace(min_ttm, max_ttm, num_ttm)
     
     # Build a grid of volatilities using meshgrid
     strike_mesh, ttm_mesh = np.meshgrid(strikes, ttm_range, indexing='ij')

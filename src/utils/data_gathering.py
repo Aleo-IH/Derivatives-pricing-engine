@@ -3,6 +3,20 @@ import pandas as pd
 import numpy as np
 from typing import Union, List
 
+def column_helper(vol_col : str = 'observed_vol'):
+    """
+    To modify df columns into columns that would work with the Quantlib library
+    """
+    return {
+        'strike' : 'k',
+        vol_col : 'sigma',
+        'Option Type' : 'option_type',
+        'expiration' : 'exercise_date',
+        'underlying_price' : 'u',
+        'dividend_yield' : 'div',
+        'risk_free_rate' : 'r'
+    }
+
 def to_continuous(rate: float) -> float:
     """
     Converts an annual nominal rate to a continuously compounded rate.
@@ -152,6 +166,7 @@ def process_option_data(
     underlying_price: float = None,
     dividend_yield: float = None,
     risk_free_rate: float = None,
+    observed_vol : float = None
 ) -> pd.DataFrame:
     """
     Processes the options data by adding metadata and applying filters.
@@ -167,6 +182,7 @@ def process_option_data(
         underlying_price (float, optional): Underlying asset price.
         dividend_yield (float, optional): Continuously compounded dividend yield.
         risk_free_rate (float, optional): Continuously compounded risk-free rate.
+        observed vol (float, optional): Vol input by the user against yfinance implied vol
 
     Returns:
         pd.DataFrame: Processed options data.
@@ -179,6 +195,7 @@ def process_option_data(
     opt_data["underlying_price"] = underlying_price
     opt_data["dividend_yield"] = dividend_yield
     opt_data["risk_free_rate"] = risk_free_rate
+    opt_data["observed_vol"] = observed_vol
 
     if min_strike is not None:
         opt_data = opt_data[opt_data["strike"] >= min_strike]
@@ -188,6 +205,7 @@ def process_option_data(
     return opt_data
 
 
+
 def options_gathering(
     ticker: Union[str, List[str]],
     expiry_date: str = None,
@@ -195,7 +213,8 @@ def options_gathering(
     expiry_end_date: str = None,
     min_strike: float = None,
     max_strike: float = None,
-    option_type: str = "both",
+    option_type: str = "both",  # Must be one of: 'call', 'put', or 'both'
+    observed_vol : float = 0.2
 ) -> pd.DataFrame:
     """
     Retrieves the current options data for one or more tickers using the yfinance API,
@@ -256,6 +275,7 @@ def options_gathering(
                         underlying_price,
                         dividend_yield,
                         risk_free_rate,
+                        observed_vol
                     )
                     all_options_data.append(calls)
 
@@ -271,6 +291,7 @@ def options_gathering(
                         underlying_price,
                         dividend_yield,
                         risk_free_rate,
+                        observed_vol
                     )
                     all_options_data.append(puts)
 
