@@ -18,7 +18,7 @@ def BSM_EuroVanilla(u_params: dict = None):
         ql.QuoteHandle(q_params["u"]),
         ql.YieldTermStructureHandle(div_term),
         ql.YieldTermStructureHandle(rf_term),
-        ql.BlackVolTermStructureHandle(vol_term)
+        ql.BlackVolTermStructureHandle(vol_term),
     )
 
     option = ql.EuropeanOption(

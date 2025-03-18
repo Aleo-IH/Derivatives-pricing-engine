@@ -3,19 +3,21 @@ import pandas as pd
 import numpy as np
 from typing import Union, List
 
-def column_helper(vol_col : str = 'observed_vol'):
+
+def column_helper(vol_col: str = "observed_vol"):
     """
     To modify df columns into columns that would work with the Quantlib library
     """
     return {
-        'strike' : 'k',
-        vol_col : 'sigma',
-        'Option Type' : 'option_type',
-        'expiration' : 'exercise_date',
-        'underlying_price' : 'u',
-        'dividend_yield' : 'div',
-        'risk_free_rate' : 'r'
+        "strike": "k",
+        vol_col: "sigma",
+        "Option Type": "option_type",
+        "expiration": "exercise_date",
+        "underlying_price": "u",
+        "dividend_yield": "div",
+        "risk_free_rate": "r",
     }
+
 
 def to_continuous(rate: float) -> float:
     """
@@ -166,7 +168,7 @@ def process_option_data(
     underlying_price: float = None,
     dividend_yield: float = None,
     risk_free_rate: float = None,
-    observed_vol : float = None
+    observed_vol: float = None,
 ) -> pd.DataFrame:
     """
     Processes the options data by adding metadata and applying filters.
@@ -205,7 +207,6 @@ def process_option_data(
     return opt_data
 
 
-
 def options_gathering(
     ticker: Union[str, List[str]],
     expiry_date: str = None,
@@ -214,7 +215,7 @@ def options_gathering(
     min_strike: float = None,
     max_strike: float = None,
     option_type: str = "both",  # Must be one of: 'call', 'put', or 'both'
-    observed_vol : float = 0.2
+    observed_vol: float = 0.2,
 ) -> pd.DataFrame:
     """
     Retrieves the current options data for one or more tickers using the yfinance API,
@@ -275,7 +276,7 @@ def options_gathering(
                         underlying_price,
                         dividend_yield,
                         risk_free_rate,
-                        observed_vol
+                        observed_vol,
                     )
                     all_options_data.append(calls)
 
@@ -291,7 +292,7 @@ def options_gathering(
                         underlying_price,
                         dividend_yield,
                         risk_free_rate,
-                        observed_vol
+                        observed_vol,
                     )
                     all_options_data.append(puts)
 
